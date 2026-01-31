@@ -16,10 +16,11 @@ class Config(BaseModel):
 class response(BaseModel):
     data: str
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
-
+@app.get("/connection")
+async def ollama_connection():
+   # Process file content
+    content = check_ollama_connection(DEFAULT_OLLAMA_CONFIG)
+    return {"connection_status": content}
 
 @app.post("/upload/pdf")
 async def upload_pdf(file: Annotated[UploadFile, File(description="Upload a PDF")]):
@@ -63,7 +64,6 @@ async def create_summary(file: Annotated[UploadFile, File(description="Upload a 
         headers={"Content-Disposition": "attachment; filename=summary.txt"}
     )
 
-
 @app.post("/sanitize")
 async def sanitize(file: Annotated[UploadFile, File(description="Upload a PDF")]):
     # Validate file type manually if needed
@@ -85,13 +85,6 @@ async def sanitize(file: Annotated[UploadFile, File(description="Upload a PDF")]
         media_type="text/plain", 
         headers={"Content-Disposition": "attachment; filename=sanitized.txt"}
     )
-
-@app.get("/connection")
-async def ollama_connection():
-   # Process file content
-    content = check_ollama_connection(DEFAULT_OLLAMA_CONFIG)
-    return {"connection_status": content}
-
 
 @app.get("/download/dictionary")
 async def download_dictionary():
