@@ -1,6 +1,3 @@
-# To Run Locally
-
-**Prerequisites:**  Node.js
 
 # To Run Locally
 
@@ -69,12 +66,6 @@ curl http://localhost:8000/api/connection
 
 
 ## Overview of the Redact AI's Working
-
-**Interactive Data Anonymization Framework**
-
----
-
-## Overview
 
 SecureRedact Protocol is a multi-stage, user-controlled data anonymization framework designed to ensure sensitive information is handled with maximum transparency, privacy, and regulatory compliance. All critical screening and redaction steps occur locally before any optional cloud interaction.
 
