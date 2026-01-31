@@ -2,7 +2,6 @@
 
 **Prerequisites:**  Node.js
 
-````markdown
 # To Run Locally
 
 **Prerequisites:**  Node.js (for frontend) and Python 3.10+ (for the optional local API)
@@ -188,5 +187,4 @@ The Redact AI is designed to ensure:
 
 Understanding this model is required before proceeding with document processing.
 
-````
 
