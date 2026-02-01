@@ -33,7 +33,7 @@ Backend (optional Python FastAPI service)
 Quick local workflow:
 
 - Start the frontend: `npm run dev` (open http://localhost:5173)
-- Optionally start the Python API: `uvicorn src.api.redact_api_main:app --reload --port 8000`
+- Optionally start the Python API: `uvicorn api.redact_api_main:app --reload --app-dir src --port 8000`
 - Upload a PDF in the UI and download the sanitized/exported artifacts.
 
 
