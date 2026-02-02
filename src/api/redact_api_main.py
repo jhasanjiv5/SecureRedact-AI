@@ -2,10 +2,12 @@ import io
 from pydantic import BaseModel
 from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse, StreamingResponse
+from fastapi_mcp import FastApiMCP
 from typing import Annotated
 from api.api_services.geminiService import generate_summary, perform_privacy_validation
 from api.api_services.pdfUtils import extract_text_from_pdf, generate_redacted_pdf
 from api.api_services.ollamaService import split_into_chunks, check_ollama_connection, sanitize_with_ollama, assess_risk_with_ollama,count_redactions, DEFAULT_OLLAMA_CONFIG, JurisdictionConfig, OllamaConfig, LocalRiskResult
+
 app = FastAPI()
 router = APIRouter()
 
@@ -20,13 +22,13 @@ class response(BaseModel):
 async def root():
     return {"message": "Redact API is running"}
 
-@app.get("/connection")
+@app.get("/connection", operation_id="ollama_connection")
 async def ollama_connection():
    # Process file content
     content = check_ollama_connection(DEFAULT_OLLAMA_CONFIG)
     return {"connection status with Ollama": content}
 
-@app.post("/upload/pdf")
+@app.post("/upload/pdf", operation_id="upload_pdf")
 async def upload_pdf(file: Annotated[UploadFile, File(description="Upload a PDF")]):
     # Validate file type manually if needed
     if file.content_type != "application/pdf":
@@ -47,7 +49,7 @@ async def upload_pdf(file: Annotated[UploadFile, File(description="Upload a PDF"
         headers={"Content-Disposition": "attachment; filename=pdf_data.txt"}
     )
 
-@app.post("/download/report")
+@app.post("/download/report", operation_id="create_summary")
 async def create_summary(file: Annotated[UploadFile, File(description="Upload a PDF")]):
     # Validate file type manually if needed
     if file.content_type != "text/plain":
@@ -120,3 +122,10 @@ async def download_risk_report():
         headers={"Content-Disposition": "attachment; filename=risk-report.json"}
     )
 app.include_router(router, prefix="/api")
+
+if __name__ == "__main__":
+    mcp = FastApiMCP(app, include_operations=['ollama_connection', 'upload_pdf', 'create_summary'])
+    mcp.mount_http()
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+    
