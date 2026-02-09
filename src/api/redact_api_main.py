@@ -72,11 +72,10 @@ async def create_summary(file: Annotated[UploadFile, File(description="Upload a 
 
 @app.post("/sanitize")
 async def sanitize(file: Annotated[UploadFile, File(description="Upload a text file")]):
-    # Validate file type manually if needed
-    if file.content_type != "text/plain":
-        raise HTTPException(status_code=400, detail="File must be a plain text file")
     
-    sanitized = sanitize_with_ollama(await file.read(), DEFAULT_OLLAMA_CONFIG, "General Text", {"name": "Global", "law": "General Privacy"})
+    text_file = await upload_pdf(file)
+    
+    sanitized = sanitize_with_ollama(text_file, DEFAULT_OLLAMA_CONFIG, "General Text", {"name": "Global", "law": "General Privacy"})
              
     content = sanitized["sanitizedText"]
     # Create data using Pydantic
@@ -90,22 +89,6 @@ async def sanitize(file: Annotated[UploadFile, File(description="Upload a text f
         stream, 
         media_type="text/plain", 
         headers={"Content-Disposition": "attachment; filename=sanitized.txt"}
-    )
-
-@app.get("/download/dictionary")
-async def download_dictionary():
-    #TODO: Implement actual dictionary generation logic
-    # Create data using Pydantic
-    config = Config(theme="dark", notifications=True)
-    
-    # Dump Pydantic model to a JSON string, then to bytes
-    json_data = config.model_dump_json()
-    stream = io.BytesIO(json_data.encode())
-    
-    return StreamingResponse(
-        stream, 
-        media_type="application/json", 
-        headers={"Content-Disposition": "attachment; filename=dictionary.json"}
     )
 
 @app.get("/download/risk-report")
