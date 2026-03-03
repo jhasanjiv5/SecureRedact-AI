@@ -11,6 +11,7 @@
   "dependencies": {
     "@google/genai": "^1.30.0",
     "@tailwindcss/vite": "^4.1.17",
+    "glob": "^13.0.6",
     "jspdf": "^4.1.0",
     "lucide-react": "^0.554.0",
     "pdfjs-dist": "^5.4.394",
