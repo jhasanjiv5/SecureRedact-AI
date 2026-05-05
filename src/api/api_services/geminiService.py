@@ -29,6 +29,8 @@ class ValidationResult(TypedDict):
 # Initialize the client
 load_dotenv(dotenv_path=".env.local")  # Load environment variables from .env.local
 # Ensure "GOOGLE_API_KEY" or "API_KEY" is set in your environment variables
+print("GOOGLE_API_KEY is set:", "GOOGLE_API_KEY" in os.environ)
+print("API_KEY is set:", "API_KEY" in os.environ)
 client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY") or os.getenv("API_KEY"))
 
 SUMMARY_SYSTEM_INSTRUCTION = """

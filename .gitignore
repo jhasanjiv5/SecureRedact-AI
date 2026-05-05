@@ -55,3 +55,4 @@ sdist/
 var/
 wheels/
 pip-wheel-metadata/
+chroma_db/

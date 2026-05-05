@@ -1,6 +1,15 @@
 import io
 from pypdf import PdfReader
 from fpdf import FPDF
+from langchain_chroma import Chroma
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document
+
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=1000, 
+    chunk_overlap=200, 
+    separators=["\n\n", "\n", " ", "", "Chapter", "Section"]
+)
 
 def extract_text_from_pdf(file_bytes: bytes) -> str:
     """
@@ -32,6 +41,30 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
         print(f"Error extracting text from PDF: {e}")
         # Mimicking the fallback error throw
         raise ValueError("Failed to extract text from PDF file. Please try a text or JSON file if this persists.")
+    
+def create_context(documents):
+    """Chunks text and adds metadata headers for context."""
+    chunks = []
+    for doc in documents:
+        doc_chunks = text_splitter.split_text(doc['content'])
+        # We attach Document ID and Title to every single chunk so the LLM knows the source
+        chunks.extend([
+            f"Document ID: {doc['id']}\nTitle: {doc['title']}\nContent: {chunk}\n\n" 
+            for chunk in doc_chunks
+        ])
+    return chunks
+
+def process_pdf_to_context(pdf_bytes: bytes, file_title: str):
+    
+    raw_text = extract_text_from_pdf(pdf_bytes)
+    doc_chunks = text_splitter.split_text(raw_text)
+    
+    return [
+        Document(
+            page_content=chunk, 
+            metadata={"title": file_title}
+        ) for chunk in doc_chunks
+    ]
 
 def generate_redacted_pdf(content: str) -> bytes:
     """

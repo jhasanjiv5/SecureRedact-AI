@@ -3,10 +3,11 @@ from pydantic import BaseModel
 from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi_mcp import FastApiMCP
-from typing import Annotated
-from api.api_services.geminiService import generate_summary, perform_privacy_validation
-from api.api_services.pdfUtils import extract_text_from_pdf, generate_redacted_pdf
-from api.api_services.ollamaService import split_into_chunks, check_ollama_connection, sanitize_with_ollama, assess_risk_with_ollama,count_redactions, DEFAULT_OLLAMA_CONFIG, JurisdictionConfig, OllamaConfig, LocalRiskResult
+from typing import Annotated, List
+from src.api.api_services.geminiService import generate_summary, perform_privacy_validation
+from src.api.api_services.pdfUtils import extract_text_from_pdf, generate_redacted_pdf
+from src.api.api_services.ollamaService import split_into_chunks, check_ollama_connection, sanitize_with_ollama, assess_risk_with_ollama,count_redactions, DEFAULT_OLLAMA_CONFIG, JurisdictionConfig, OllamaConfig, LocalRiskResult
+from src.api.api_services.ollamaRAGServices import screen_privacy_risks, upload_files
 
 app = FastAPI()
 router = APIRouter()
@@ -48,6 +49,20 @@ async def upload_pdf(file: Annotated[UploadFile, File(description="Upload a PDF"
         media_type="text/plain", 
         headers={"Content-Disposition": "attachment; filename=pdf_data.txt"}
     )
+
+@app.post("/upload/multi_files_screen", operation_id="upload_multiple_files_screen")
+async def upload_multiple_files(files: List[UploadFile] = File(...)):
+    # Validate file type manually if needed
+    for file in files:
+        if file.content_type != "application/pdf":
+            raise HTTPException(status_code=400, detail="File must be PDFs")
+    
+    # Process file content
+    content = await upload_files(files)
+
+    
+    return content
+
 
 @app.post("/download/report", operation_id="create_summary")
 async def create_summary(file: Annotated[UploadFile, File(description="Upload a PDF")]):
@@ -110,7 +125,15 @@ async def download_risk_report(uploaded_file: Annotated[UploadFile, File(descrip
         media_type="text/plain", 
         headers={"Content-Disposition": "attachment; filename=risk_report.txt"}
     )
+
+@app.get("/download/screen_docs")
+async def download_screening_report():
     
+    # Process file content
+    content = screen_privacy_risks(DEFAULT_OLLAMA_CONFIG)
+    # Create data using Pydantic
+    return content
+
 app.include_router(router, prefix="/api")
 
 if __name__ == "__main__":
